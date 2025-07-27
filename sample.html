@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Knowledge Graph</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    svg { width: 100vw; height: 100vh; }
+    .node { fill: #3b82f6; cursor: grab; }
+    .link { stroke: #9ca3af; stroke-width: 1.5; }
+    text { fill: #111827; font-size: 12px; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <svg></svg>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    
+    const graphData = {
+  nodes: [
+    { id: "Note A" },
+    { id: "Note B" },
+    { id: "Note C" },
+    { id: "Note D" },
+  ],
+  links: [
+    { source: "Note A", target: "Note B" },
+    { source: "Note A", target: "Note C" },
+    { source: "Note C", target: "Note D" }
+  ]
+};
+
+const svg = d3.select("svg");
+const width = window.innerWidth;
+const height = window.innerHeight;
+
+// Simulation setup
+const simulation = d3.forceSimulation(graphData.nodes)
+  .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(120))
+  .force("charge", d3.forceManyBody().strength(-300))
+  .force("center", d3.forceCenter(width / 2, height / 2))
+  .force("collision", d3.forceCollide(50));
+
+// Zoom behavior
+const zoom = d3.zoom().on("zoom", (event) => {
+  g.attr("transform", event.transform);
+});
+svg.call(zoom);
+
+// Create a group inside the SVG for zooming
+const g = svg.append("g");
+
+// Edges
+const link = g.selectAll(".link")
+  .data(graphData.links)
+  .enter().append("line")
+  .attr("class", "link");
+
+// Nodes
+const node = g.selectAll(".node")
+  .data(graphData.nodes)
+  .enter().append("circle")
+  .attr("r", 20)
+  .attr("class", "node")
+  .call(drag(simulation));
+
+// Labels
+const label = g.selectAll("text")
+  .data(graphData.nodes)
+  .enter().append("text")
+  .attr("text-anchor", "middle")
+  .attr("dy", 5)
+  .text(d => d.id);
+
+// Update positions on each tick
+simulation.on("tick", () => {
+  link
+    .attr("x1", d => d.source.x)
+    .attr("y1", d => d.source.y)
+    .attr("x2", d => d.target.x)
+    .attr("y2", d => d.target.y);
+
+  node
+    .attr("cx", d => d.x)
+    .attr("cy", d => d.y);
+
+  label
+    .attr("x", d => d.x)
+    .attr("y", d => d.y);
+});
+
+// Drag behavior
+function drag(simulation) {
+  return d3.drag()
+    .on("start", (event, d) => {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    })
+    .on("drag", (event, d) => {
+      d.fx = event.x;
+      d.fy = event.y;
+    })
+    .on("end", (event, d) => {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    });
+}
+
+  </script>
+</body>
+</html>

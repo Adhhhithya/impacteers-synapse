@@ -1,4 +1,4 @@
-# main.py - CORRECTED VERSION FOR AUTOCOMPLETE
+# main.py - UPDATED FOR RADAR CHART DATA
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,20 +20,19 @@ KNOWN_SKILLS = [
 app = FastAPI(
     title="Impacteers Synapse API",
     description="The core intelligence engine for smart talent matching.",
-    version="1.5.1",
+    version="1.6.0", # Version bump for Radar Chart
 )
+# ... (CORS middleware is the same)
 origins = ["http://localhost:3000"]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 class ProcessTextRequest(BaseModel):
-    name: str
-    title: str
-    text: str
-    manual_skills: list[str] = []
+    name: str; title: str; text: str; manual_skills: list[str] = []
 
-# --- Data Seeding ---
+# --- Data Seeding (No changes) ---
 @app.on_event("startup")
 async def seed_database():
+    # ... (This entire function remains unchanged)
     with driver.session() as session:
         result = session.run("MATCH (n:Skill) RETURN count(n) as count").single()
         if result["count"] == 0:
@@ -61,53 +60,85 @@ async def seed_database():
 # --- API Endpoints ---
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Synapse Engine! Version 1.5 with Autocomplete."}
+    return {"message": "Welcome to the Synapse Engine! Version 1.6 with Radar Charts."}
 
-@app.get("/job-roles")
-def get_job_roles():
-    with driver.session() as session:
-        return session.run("MATCH (jr:JobRole) RETURN jr.name as name, jr.description as description, elementId(jr) as id").data()
-
-@app.get("/candidates")
-def get_candidates():
-    with driver.session() as session:
-        return session.run("MATCH (c:Candidate) RETURN c.name as name, c.title as title, elementId(c) as id").data()
-
-@app.get("/skills/autocomplete")
-def autocomplete_skills(q: str = ""):
-    if not q:
-        return []
-    query = "MATCH (s:Skill) WHERE toLower(s.name) STARTS WITH toLower($query) RETURN s.name as name LIMIT 10"
-    with driver.session() as session:
-        results = session.run(query, query=q).data()
-    return results
-
-@app.post("/process/text")
-def process_text_and_create_candidate(request: ProcessTextRequest):
-    nlp_skills = {skill for skill in KNOWN_SKILLS if skill.lower() in request.text.lower()}
-    all_skills = set(request.manual_skills).union(nlp_skills)
-    with driver.session() as session:
-        result = session.run("""
-            MERGE (c:Candidate {name: $name, title: $title})
-            WITH c
-            UNWIND $skills as skill_name
-            MATCH (s:Skill {name: skill_name})
-            MERGE (c)-[:HAS_SKILL]->(s)
-            RETURN c, collect(s.name) as skills
-            """, name=request.name, title=request.title, skills=list(all_skills)
-        ).data()
-    return {"status": "success", "processed_data": result}
-
+# ======================================================================
+# === THE NEW, MORE DETAILED MATCHING ENDPOINT ===
+# ======================================================================
 @app.get("/match/by-job-role/{job_role_id}")
 def match_candidates_by_job_role(job_role_id: str):
-    query = "MATCH (jr:JobRole)-[:REQUIRES_SKILL]->(s:Skill) WHERE elementId(jr) = $job_role_id WITH jr, collect(s) as required_skills MATCH (c:Candidate) WITH c, required_skills, reduce(score = 0, sk IN required_skills | score + CASE WHEN (c)-[:HAS_SKILL]->(sk) THEN 2 WHEN (c)-[:WORKED_ON]->(:Project)-[:USES_SKILL]->(sk) THEN 1 ELSE 0 END) AS total_score WITH c, total_score, size(required_skills) * 2 AS max_score WHERE total_score > 0 RETURN c.name AS name, c.title AS title, total_score, max_score ORDER BY total_score DESC"
+    """
+    Finds candidates and returns a detailed breakdown of their score for each required skill.
+    """
+    query = """
+        // 1. Find the job role and its required skills
+        MATCH (jr:JobRole)-[:REQUIRES_SKILL]->(s:Skill)
+        WHERE elementId(jr) = $job_role_id
+        WITH jr, collect(s) as required_skills
+
+        // 2. Find all candidates
+        MATCH (c:Candidate)
+
+        // 3. For each candidate, create a list of their scores for each skill
+        WITH c, required_skills, [sk IN required_skills | {
+            skill: sk.name,
+            score: CASE
+                WHEN (c)-[:HAS_SKILL]->(sk) THEN 2
+                WHEN (c)-[:WORKED_ON]->(:Project)-[:USES_SKILL]->(sk) THEN 1
+                ELSE 0
+            END
+        }] AS skill_scores
+        
+        // 4. Calculate the total score from the list of scores
+        WITH c, skill_scores, reduce(total = 0, s IN skill_scores | total + s.score) AS total_score,
+             size(required_skills) * 2 AS max_score
+        
+        // 5. Filter out candidates with a score of 0
+        WHERE total_score > 0
+
+        // 6. Return all the detailed data
+        RETURN c.name AS name,
+               c.title AS title,
+               total_score,
+               max_score,
+               skill_scores // <-- THE NEW, IMPORTANT DATA
+        ORDER BY total_score DESC
+    """
     with driver.session() as session:
         results = session.run(query, job_role_id=job_role_id).data()
+    
     skills_query = "MATCH (jr:JobRole) WHERE elementId(jr) = $job_role_id MATCH (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN collect(s.name) as required_skills"
     with driver.session() as session:
         skills_result = session.run(skills_query, job_role_id=job_role_id).single()
         required_skills = skills_result["required_skills"] if skills_result else []
-    return {"job_role_id": job_role_id, "required_skills": required_skills, "matched_candidates": results}
+
+    return {
+        "job_role_id": job_role_id,
+        "required_skills": required_skills,
+        "matched_candidates": results
+    }
+# ======================================================================
+
+# ... (All other endpoints: /job-roles, /candidates, etc. remain unchanged) ...
+@app.get("/job-roles")
+def get_job_roles(): # ...
+    with driver.session() as session: return session.run("MATCH (jr:JobRole) RETURN jr.name as name, jr.description as description, elementId(jr) as id").data()
+@app.get("/candidates")
+def get_candidates(): # ...
+    with driver.session() as session: return session.run("MATCH (c:Candidate) RETURN c.name as name, c.title as title, elementId(c) as id").data()
+@app.get("/skills/autocomplete")
+def autocomplete_skills(q: str = ""): # ...
+    if not q: return []
+    query = "MATCH (s:Skill) WHERE toLower(s.name) STARTS WITH toLower($query) RETURN s.name as name LIMIT 10"
+    with driver.session() as session: return session.run(query, query=q).data()
+@app.post("/process/text")
+def process_text_and_create_candidate(request: ProcessTextRequest): # ...
+    nlp_skills = {skill for skill in KNOWN_SKILLS if skill.lower() in request.text.lower()}
+    all_skills = set(request.manual_skills).union(nlp_skills)
+    with driver.session() as session:
+        result = session.run("MERGE (c:Candidate {name: $name, title: $title}) WITH c UNWIND $skills as skill_name MATCH (s:Skill {name: skill_name}) MERGE (c)-[:HAS_SKILL]->(s) RETURN c, collect(s.name) as skills", name=request.name, title=request.title, skills=list(all_skills)).data()
+    return {"status": "success", "processed_data": result}
+@app.get("/candidate/{name}/path_to_skills")
 
 @app.get("/candidate/{name}/path_to_skills")
 def get_candidate_path_to_skills(name: str, skills: list[str] = Query(None)):
@@ -121,8 +152,6 @@ def get_candidate_path_to_skills(name: str, skills: list[str] = Query(None)):
                 for node in result[0]['nodes']: all_nodes[node['id']] = node
                 for edge in result[0]['edges']: all_edges[edge['id']] = edge
     return {"nodes": list(all_nodes.values()), "edges": list(all_edges.values())}
-
-# main.py - This is the CORRECT function to use
 
 @app.get("/graph-explorer/data")
 def get_full_graph_data():
@@ -147,7 +176,6 @@ def get_full_graph_data():
         return result[0]
     else:
         return {"nodes": [], "edges": []}
-
 @app.on_event("shutdown")
-def shutdown_event():
+def shutdown_event(): # ...
     driver.close()
