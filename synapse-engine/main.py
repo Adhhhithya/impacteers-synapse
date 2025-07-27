@@ -122,15 +122,31 @@ def get_candidate_path_to_skills(name: str, skills: list[str] = Query(None)):
                 for edge in result[0]['edges']: all_edges[edge['id']] = edge
     return {"nodes": list(all_nodes.values()), "edges": list(all_edges.values())}
 
+# main.py - This is the CORRECT function to use
+
 @app.get("/graph-explorer/data")
-def get_full_graph_data(limit: int = 25):
-    query = "MATCH (n)-[r]-(m) WITH n, r, m LIMIT $limit WITH collect(distinct n) + collect(distinct m) as nodes, collect(distinct r) as rels UNWIND nodes as node UNWIND rels as rel RETURN collect(distinct {id: elementId(node), label: labels(node)[0], properties: properties(node)}) as nodes, collect(distinct {id: elementId(rel), source: elementId(startNode(rel)), target: elementId(endNode(r)), label: type(rel)}) as edges"
+def get_full_graph_data():
+    """
+    A simpler and more robust query to fetch all nodes and relationships
+    for the graph explorer.
+    """
+    # This query first collects all nodes, then collects all relationships.
+    # It's more reliable than trying to match paths, especially on small graphs.
+    query = """
+        MATCH (n)
+        OPTIONAL MATCH (n)-[r]->(m)
+        WITH collect(distinct n) as nodes, collect(distinct r) as rels
+        UNWIND nodes as node
+        RETURN collect(distinct {id: elementId(node), label: labels(node)[0], properties: properties(node)}) as nodes,
+               [rel in rels WHERE rel IS NOT NULL | {id: elementId(rel), source: elementId(startNode(rel)), target: elementId(endNode(rel)), label: type(rel)}] as edges
+    """
     with driver.session() as session:
-        result = session.run(query, limit=limit).data()
-    if not result or not result[0]['nodes']:
-        fallback_query = "MATCH (n) OPTIONAL MATCH (n)-[r]-(m) RETURN collect(distinct {id: elementId(n), label: labels(n)[0], properties: properties(n)}) as nodes, collect(distinct {id: elementId(r), source: elementId(startNode(r)), target: elementId(endNode(r)), label: type(r)}) as edges"
-        result = session.run(fallback_query).data()
-    return result[0]
+        result = session.run(query).data()
+    
+    if result:
+        return result[0]
+    else:
+        return {"nodes": [], "edges": []}
 
 @app.on_event("shutdown")
 def shutdown_event():
