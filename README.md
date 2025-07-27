@@ -1,18 +1,28 @@
+### **Complete `README.md` for Impacteers Synapse**
+
+(You can copy everything from the line below)
+
+---
+
 # **Impacteers Synapse: The Intelligent Talent Graph**
 
 **Impacteers Synapse** is a full-stack web application designed to be the core intelligence engine for a modern talent ecosystem. It moves beyond simple keyword matching by representing candidates, skills, projects, and job roles as a dynamic knowledge graph. This allows the system to perform nuanced, context-aware matching and uncover high-potential candidates that traditional systems would miss.
 
-## **Core Features**
+## ✨ Core Features
 
-*   **Intelligent Matching Engine:** Finds candidates for specific job roles by analyzing both their direct skills and skills inferred from their project experience.
-*   **Weighted Scoring System:** Ranks matched candidates based on a weighted score, giving more points for explicit expertise (`HAS_SKILL`) than for inferred practical experience (`WORKED_ON` -> `USES_SKILL`).
-*   **NLP-Powered Candidate Ingestion:** Features a user-friendly UI where new candidate bios can be pasted. The backend uses a spaCy NLP pipeline to automatically extract skills and populate the knowledge graph.
-*   **Interactive Skill Tagging:** An autocomplete-enabled input allows for fast and accurate manual tagging of skills, which are combined with NLP-extracted skills.
-*   **Dynamic Path Visualization:** When a candidate is matched, the system displays an interactive graph (using React Flow) that visually explains *why* they are a good fit by showing the paths to the required skills.
-*   **Knowledge Graph Explorer:** A dedicated "god-mode" page that renders a large portion of the entire graph, allowing users to freely explore the interconnected talent ecosystem.
-*   **Multi-Page "Explorer" UI:** The application is structured with separate, navigable pages for viewing all Job Roles and all Candidates currently in the system.
+*   **Intelligent Role-Based Matching:** Matches candidates against predefined job roles, not just loose collections of skills.
+*   **Weighted Scoring System:** Ranks matched candidates with a "Match Score," giving more points for explicit expertise (`HAS_SKILL`) than for inferred practical experience (`WORKED_ON` -> `USES_SKILL`).
+*   **NLP-Powered Candidate Ingestion:** A user-friendly form allows new candidate bios to be pasted. The backend uses a spaCy NLP pipeline to automatically extract skills from the text.
+*   **Interactive Skill Tagging:** An autocomplete-enabled input suggests existing skills from the database, ensuring data consistency and speeding up manual candidate profiling.
+*   **High-Fidelity Knowledge Graph Explorer:** A stunning, physics-based visualization of the entire talent ecosystem.
+    *   **Stable & Fluid Physics:** Nodes are properly aligned but react beautifully to user interaction.
+    *   **"Focus on Hover" UI:** Node labels are hidden by default and appear only on hover for a clean, minimalist aesthetic.
+    *   **Interactive Controls:** UI controls allow for easy zooming and panning.
+    *   **Detailed Pop-ups:** Clicking a node opens a modal with a clean, tabular view of its properties.
+*   **Multi-Page "Explorer" UI:** The application is a complete SPA with separate, navigable pages for viewing all Job Roles and all Candidates currently in the system.
+*   **Seamless UI/UX:** Features like interactive cards on the "Job Roles" page allow users to instantly navigate to the matcher and see results for that specific role.
 
-## **Technology Stack**
+## 🚀 Technology Stack
 
 | Component | Technology | Purpose |
 | :--- | :--- | :--- |
@@ -22,17 +32,18 @@
 | **Frontend** | **React.js**| For building a dynamic, component-based user interface. |
 | **Routing** | **React Router** | For handling client-side navigation between different pages. |
 | **Data Fetching**| **Axios** & **SWR** | For making API calls from the frontend to the backend. |
-| **Visualization**| **React Flow**| For rendering all interactive graphs and data visualizations. |
+| **Visualization**| **`react-force-graph-2d`** | For rendering the high-fidelity, physics-based knowledge graph. |
+| **UI Components** | **`react-modal`**, **`react-icons`** | For professional pop-ups and clean UI icons. |
 
-## **System Architecture**
+## 🏗️ System Architecture
 
 The application follows a standard three-tier architecture:
 
 1.  **Frontend (`synapse-ui`):** A React single-page application that provides the entire user interface. It runs on `http://localhost:3000` and communicates with the backend via API calls.
-2.  **Backend (`synapse-engine`):** A Python FastAPI server that contains all the business logic. It processes requests from the frontend, queries the database using the Cypher language, and runs the NLP pipeline. It runs on `http://localhost:8000`.
+2.  **Backend (`synapse-engine`):** A Python FastAPI server that contains all the business logic. It processes requests, queries the database using the Cypher language, and runs the NLP pipeline. It runs on `http://localhost:8000`.
 3.  **Database (Neo4j AuraDB):** A fully managed graph database in the cloud. It is the single source of truth for all data and is accessed only by the backend server.
 
-## **Getting Started: Local Development Setup**
+## 🛠️ Getting Started: Local Development Setup
 
 This guide will walk a new developer through setting up the project on their local machine.
 
@@ -41,7 +52,7 @@ This guide will walk a new developer through setting up the project on their loc
 *   **Git:** For cloning the repository.
 *   **Python:** Version 3.9 or higher.
 *   **Node.js:** Version 16 or higher, which includes `npm`.
-*   **Neo4j AuraDB Account:** A free account is required to host the database.
+*   **A Neo4j AuraDB Account:** A free account is required to host the database.
 
 ### **Step 1: Set Up the Database**
 
@@ -53,9 +64,9 @@ This guide will walk a new developer through setting up the project on their loc
 ### **Step 2: Set Up the Backend (`synapse-engine`)**
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/YourUsername/impacteers-synapse-project.git
-cd impacteers-synapse-project
+# 1. Clone the repository from GitHub
+git clone https://github.com/YourUsername/your-repo-name.git
+cd your-repo-name
 
 # 2. Navigate to the backend directory
 cd synapse-engine
@@ -67,36 +78,35 @@ python -m venv venv
 # On macOS/Linux:
 # source venv/bin/activate
 
-# 4. Install the required packages
-# (Assuming a requirements.txt will be created. If not, install manually)
-# pip install -r requirements.txt
+# 4. Install all required packages
 pip install fastapi "uvicorn[standard]" neo4j spacy pydantic
 
 # 5. Download the spaCy language model
 python -m spacy download en_core_web_sm
 
 # 6. Configure database credentials
-# In the synapse-engine folder, find the `main.py` file.
-# Locate the URI and AUTH variables and replace them with your AuraDB credentials.
+# Open the synapse-engine/main.py file in your code editor.
+# Locate the URI and AUTH variables near the top and replace the placeholder
+# values with your actual AuraDB credentials.
 # URI = "neo4j+s://YOUR_URI_HERE"
 # AUTH = ("neo4j", "YOUR_PASSWORD_HERE")
 
 # 7. Run the backend server
 python -m uvicorn main:app --reload
 ```
-The backend server should now be running on `http://localhost:8000`. The first time it runs, it will automatically seed the cloud database with sample data.
+The backend server should now be running on `http://localhost:8000`. The first time it runs, it will connect to your cloud database and automatically seed it with sample data.
 
 ### **Step 3: Set Up the Frontend (`synapse-ui`)**
 
 ```bash
 # 1. Open a NEW terminal window.
 # 2. Navigate to the frontend directory from the project root
-cd impacteers-synapse-project/synapse-ui
+cd your-repo-name/synapse-ui
 
-# 3. Install the required npm packages
+# 3. Install all required npm packages
 npm install
 
 # 4. Run the frontend development server
 npm start
 ```
-Your default web browser should automatically open to `http://localhost:3000`, where you can see and interact with the running application.
+Your default web browser should automatically open to `http://localhost:3000`, where you can see and interact with the complete running application.
