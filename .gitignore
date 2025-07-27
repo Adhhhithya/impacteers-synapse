@@ -1,0 +1,41 @@
+# ===================================================================
+# Python / Backend (synapse-engine)
+# ===================================================================
+
+# Ignore the virtual environment folder located inside synapse-engine
+/synapse-engine/venv/
+
+# Ignore Python cache files
+**/__pycache__/
+*.pyc
+
+# Ignore environment variable files (VERY IMPORTANT)
+.env
+.env.*
+*.env
+
+# ===================================================================
+# Node.js / Frontend (synapse-ui)
+# ===================================================================
+
+# Ignore the massive dependencies folder located inside synapse-ui
+/synapse-ui/node_modules/
+
+# Ignore build output
+/synapse-ui/build/
+
+# Ignore logs
+/synapse-ui/npm-debug.log*
+/synapse-ui/yarn-debug.log*
+/synapse-ui/yarn-error.log*
+
+# ===================================================================
+# General & Editor-specific
+# ===================================================================
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore editor-specific folders
+.vscode/
+.idea/

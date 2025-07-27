@@ -1,0 +1,358 @@
+/* src/App.css - FINAL CONSOLIDATED VERSION */
+
+/* === GLOBAL STYLES === */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f7f9;
+  color: #333;
+  margin: 0;
+}
+
+.App {
+  text-align: center;
+}
+
+/* === HEADER & LAYOUT === */
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+
+.App-main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+  text-align: left;
+}
+
+/* === GENERAL CARD & LIST STYLES === */
+.item-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.item-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.item-card h3 {
+  margin-top: 0;
+  color: #007bff;
+}
+
+.item-card p {
+  flex-grow: 1; 
+}
+
+/* === MATCHER PAGE & RESULTS === */
+.matcher-container {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.matcher-container h2 {
+  margin-top: 0;
+}
+
+.job-role-select-section {
+  margin-bottom: 2rem;
+}
+
+.job-role-select {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 1.1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+  font-family: inherit;
+}
+
+.matcher-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.find-match-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  flex-grow: 1; /* Make the main button take up space */
+}
+
+.find-match-button:hover {
+  background-color: #0056b3;
+}
+
+.find-match-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.clear-button {
+  padding: 12px 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.clear-button:hover {
+  background-color: #5a6268;
+}
+
+.results-container {
+  margin-top: 40px;
+}
+
+.results-container ul {
+  list-style-type: none;
+  padding: 0;
+  text-align: left;
+}
+
+.results-container li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  background-color: #fff;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  border: 2px solid transparent;
+  padding: 0; /* Important: Padding is now on child elements */
+}
+
+.results-container li:hover {
+  box-shadow: 0 4px 15px rgba(0,123,255,0.1);
+}
+
+.results-container li.selected {
+  border: 2px solid #007bff;
+  box-shadow: 0 4px 15px rgba(0,123,255,0.2);
+}
+
+.results-container li .candidate-info {
+  padding: 15px;
+  flex-grow: 1;
+}
+
+.candidate-score {
+  background-color: #e2e3e5;
+  border-radius: 0 5px 5px 0;
+  padding: 15px 20px;
+  font-size: 1rem;
+}
+
+.graph-wrapper {
+  width: 100%;
+  flex-basis: 100%;
+  margin-top: 20px;
+  padding: 20px 15px 15px 15px;
+  border-top: 1px solid #eee;
+}
+
+.graph-wrapper h4 {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.skills-display {
+  background-color: #e9ecef;
+  padding: 1rem;
+  border-radius: 5px;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+/* === ADD CANDIDATE PAGE & FORMS === */
+.add-candidate-form {
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.status-message {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.status-message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.status-message p {
+  margin: 0;
+}
+
+.status-link {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-weight: bold;
+  color: #155724;
+  text-decoration: underline;
+}
+
+.status-link:hover {
+  color: #0c2e14;
+}
+
+/* === SKILL TAGS & AUTOCOMPLETE === */
+.skill-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-tag {
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 8px 12px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.remove-tag {
+  margin-left: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #6c757d;
+}
+
+.remove-tag:hover {
+  color: #343a40;
+}
+
+.autocomplete-container {
+  position: relative;
+}
+
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  width: 100%;
+  z-index: 10;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.suggestions-list li {
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+.suggestions-list li:hover {
+  background-color: #f0f0f0;
+}
+
+/* === OTHER COMPONENTS === */
+.find-matches-for-role-button {
+  margin-top: 1rem;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  transition: background-color 0.2s;
+  align-self: flex-start; 
+}
+
+.find-matches-for-role-button:hover {
+  background-color: #138496;
+}
+
+.knowledge-graph {
+  background-color: #f8f9fa;
+}

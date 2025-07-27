@@ -1,0 +1,137 @@
+# main.py - CORRECTED VERSION FOR AUTOCOMPLETE
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from neo4j import GraphDatabase
+import spacy
+from pydantic import BaseModel
+
+# --- Database & NLP Model Loading ---
+URI = "neo4j+s://6cd72b90.databases.neo4j.io"
+AUTH = ("neo4j", "bJMxl9r5vPKP8Z9HcequIcWIERLK8Yg5uz8BJOMM5j4")
+driver = GraphDatabase.driver(URI, auth=AUTH)
+nlp = spacy.load("en_core_web_sm")
+KNOWN_SKILLS = [
+    "Python", "SQL", "FastAPI", "User Research", "Tableau", "Java", "JavaScript",
+    "React", "Node.js", "Data Analysis", "Machine Learning", "Project Management"
+]
+
+# --- FastAPI App Initialization ---
+app = FastAPI(
+    title="Impacteers Synapse API",
+    description="The core intelligence engine for smart talent matching.",
+    version="1.5.1",
+)
+origins = ["http://localhost:3000"]
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
+class ProcessTextRequest(BaseModel):
+    name: str
+    title: str
+    text: str
+    manual_skills: list[str] = []
+
+# --- Data Seeding ---
+@app.on_event("startup")
+async def seed_database():
+    with driver.session() as session:
+        result = session.run("MATCH (n:Skill) RETURN count(n) as count").single()
+        if result["count"] == 0:
+            print("Database is empty. Seeding with full data model...")
+            session.run("UNWIND $skills_list as skill_name CREATE (:Skill {name: skill_name})", skills_list=KNOWN_SKILLS)
+            session.run("""
+                CREATE (e:Candidate {name: 'Elena', title: 'Data Scientist'}), (j:Candidate {name: 'John', title: 'Backend Developer'}), (p1:Project {name: 'Customer Churn Prediction'}), (jr1:JobRole {name: 'Data Analyst', description: 'Analyzes data to provide insights.'}), (jr2:JobRole {name: 'Python Backend Developer', description: 'Builds server-side applications.'})
+                WITH e, j, p1, jr1, jr2
+                MATCH (s_py:Skill {name: 'Python'}), (s_sql:Skill {name: 'SQL'}), (s_tab:Skill {name: 'Tableau'}), (s_fa:Skill {name: 'FastAPI'})
+                MERGE (e)-[:HAS_SKILL]->(s_py)
+                MERGE (j)-[:HAS_SKILL]->(s_py)
+                MERGE (j)-[:HAS_SKILL]->(s_fa)
+                MERGE (e)-[:WORKED_ON]->(p1)
+                MERGE (p1)-[:USES_SKILL]->(s_py)
+                MERGE (p1)-[:USES_SKILL]->(s_tab)
+                MERGE (p1)-[:USES_SKILL]->(s_sql)
+                MERGE (jr1)-[:REQUIRES_SKILL]->(s_py)
+                MERGE (jr1)-[:REQUIRES_SKILL]->(s_sql)
+                MERGE (jr1)-[:REQUIRES_SKILL]->(s_tab)
+                MERGE (jr2)-[:REQUIRES_SKILL]->(s_py)
+                MERGE (jr2)-[:REQUIRES_SKILL]->(s_fa)
+            """)
+            print("Data seeding complete.")
+
+# --- API Endpoints ---
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Synapse Engine! Version 1.5 with Autocomplete."}
+
+@app.get("/job-roles")
+def get_job_roles():
+    with driver.session() as session:
+        return session.run("MATCH (jr:JobRole) RETURN jr.name as name, jr.description as description, elementId(jr) as id").data()
+
+@app.get("/candidates")
+def get_candidates():
+    with driver.session() as session:
+        return session.run("MATCH (c:Candidate) RETURN c.name as name, c.title as title, elementId(c) as id").data()
+
+@app.get("/skills/autocomplete")
+def autocomplete_skills(q: str = ""):
+    if not q:
+        return []
+    query = "MATCH (s:Skill) WHERE toLower(s.name) STARTS WITH toLower($query) RETURN s.name as name LIMIT 10"
+    with driver.session() as session:
+        results = session.run(query, query=q).data()
+    return results
+
+@app.post("/process/text")
+def process_text_and_create_candidate(request: ProcessTextRequest):
+    nlp_skills = {skill for skill in KNOWN_SKILLS if skill.lower() in request.text.lower()}
+    all_skills = set(request.manual_skills).union(nlp_skills)
+    with driver.session() as session:
+        result = session.run("""
+            MERGE (c:Candidate {name: $name, title: $title})
+            WITH c
+            UNWIND $skills as skill_name
+            MATCH (s:Skill {name: skill_name})
+            MERGE (c)-[:HAS_SKILL]->(s)
+            RETURN c, collect(s.name) as skills
+            """, name=request.name, title=request.title, skills=list(all_skills)
+        ).data()
+    return {"status": "success", "processed_data": result}
+
+@app.get("/match/by-job-role/{job_role_id}")
+def match_candidates_by_job_role(job_role_id: str):
+    query = "MATCH (jr:JobRole)-[:REQUIRES_SKILL]->(s:Skill) WHERE elementId(jr) = $job_role_id WITH jr, collect(s) as required_skills MATCH (c:Candidate) WITH c, required_skills, reduce(score = 0, sk IN required_skills | score + CASE WHEN (c)-[:HAS_SKILL]->(sk) THEN 2 WHEN (c)-[:WORKED_ON]->(:Project)-[:USES_SKILL]->(sk) THEN 1 ELSE 0 END) AS total_score WITH c, total_score, size(required_skills) * 2 AS max_score WHERE total_score > 0 RETURN c.name AS name, c.title AS title, total_score, max_score ORDER BY total_score DESC"
+    with driver.session() as session:
+        results = session.run(query, job_role_id=job_role_id).data()
+    skills_query = "MATCH (jr:JobRole) WHERE elementId(jr) = $job_role_id MATCH (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN collect(s.name) as required_skills"
+    with driver.session() as session:
+        skills_result = session.run(skills_query, job_role_id=job_role_id).single()
+        required_skills = skills_result["required_skills"] if skills_result else []
+    return {"job_role_id": job_role_id, "required_skills": required_skills, "matched_candidates": results}
+
+@app.get("/candidate/{name}/path_to_skills")
+def get_candidate_path_to_skills(name: str, skills: list[str] = Query(None)):
+    if not skills: return {"nodes": [], "edges": []}
+    query = "MATCH (c:Candidate {name: $name}) UNWIND $skills as skill_name MATCH (s:Skill {name: skill_name}) MATCH p = allShortestPaths((c)-[*]-(s)) WITH nodes(p) as path_nodes, relationships(p) as path_rels UNWIND path_nodes as n UNWIND path_rels as r RETURN collect(distinct {id: elementId(n), label: labels(n)[0], properties: properties(n)}) as nodes, collect(distinct {id: elementId(r), source: elementId(startNode(r)), target: elementId(endNode(r)), label: type(r)}) as edges"
+    all_nodes, all_edges = {}, {}
+    with driver.session() as session:
+        for skill in skills:
+            result = session.run(query, name=name, skills=[skill]).data()
+            if result and result[0]['nodes']:
+                for node in result[0]['nodes']: all_nodes[node['id']] = node
+                for edge in result[0]['edges']: all_edges[edge['id']] = edge
+    return {"nodes": list(all_nodes.values()), "edges": list(all_edges.values())}
+
+@app.get("/graph-explorer/data")
+def get_full_graph_data(limit: int = 25):
+    query = "MATCH (n)-[r]-(m) WITH n, r, m LIMIT $limit WITH collect(distinct n) + collect(distinct m) as nodes, collect(distinct r) as rels UNWIND nodes as node UNWIND rels as rel RETURN collect(distinct {id: elementId(node), label: labels(node)[0], properties: properties(node)}) as nodes, collect(distinct {id: elementId(rel), source: elementId(startNode(rel)), target: elementId(endNode(r)), label: type(rel)}) as edges"
+    with driver.session() as session:
+        result = session.run(query, limit=limit).data()
+    if not result or not result[0]['nodes']:
+        fallback_query = "MATCH (n) OPTIONAL MATCH (n)-[r]-(m) RETURN collect(distinct {id: elementId(n), label: labels(n)[0], properties: properties(n)}) as nodes, collect(distinct {id: elementId(r), source: elementId(startNode(r)), target: elementId(endNode(r)), label: type(r)}) as edges"
+        result = session.run(fallback_query).data()
+    return result[0]
+
+@app.on_event("shutdown")
+def shutdown_event():
+    driver.close()
