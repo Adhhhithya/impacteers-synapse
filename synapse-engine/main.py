@@ -32,28 +32,65 @@ class ProcessTextRequest(BaseModel):
 # --- Data Seeding (No changes) ---
 @app.on_event("startup")
 async def seed_database():
-    # ... (This entire function remains unchanged)
     with driver.session() as session:
         result = session.run("MATCH (n:Skill) RETURN count(n) as count").single()
         if result["count"] == 0:
             print("Database is empty. Seeding with full data model...")
             session.run("UNWIND $skills_list as skill_name CREATE (:Skill {name: skill_name})", skills_list=KNOWN_SKILLS)
             session.run("""
-                CREATE (e:Candidate {name: 'Elena', title: 'Data Scientist'}), (j:Candidate {name: 'John', title: 'Backend Developer'}), (p1:Project {name: 'Customer Churn Prediction'}), (jr1:JobRole {name: 'Data Analyst', description: 'Analyzes data to provide insights.'}), (jr2:JobRole {name: 'Python Backend Developer', description: 'Builds server-side applications.'})
+                // Create Base Nodes
+                CREATE (e:Candidate {name: 'Elena', title: 'Data Scientist'}),
+                       (j:Candidate {name: 'John', title: 'Backend Developer'}),
+                       (p1:Project {name: 'Customer Churn Prediction'})
+
+                // Create Job Roles with a STANDARD of 5 top_skills
+                CREATE (jr1:JobRole {
+                           name: 'Data Analyst', 
+                           description: 'Analyzes data to provide insights.',
+                           top_skills: ['SQL', 'Tableau', 'Python', 'Data Analysis', 'Project Management'] 
+                       }),
+                       (jr2:JobRole {
+                           name: 'Python Backend Developer', 
+                           description: 'Builds server-side applications.',
+                           top_skills: ['Python', 'FastAPI', 'SQL', 'JavaScript', 'React']
+                       })
+                
+                // Find all necessary skills
                 WITH e, j, p1, jr1, jr2
-                MATCH (s_py:Skill {name: 'Python'}), (s_sql:Skill {name: 'SQL'}), (s_tab:Skill {name: 'Tableau'}), (s_fa:Skill {name: 'FastAPI'})
+                MATCH (s_py:Skill {name: 'Python'}), (s_sql:Skill {name: 'SQL'}), 
+                      (s_tab:Skill {name: 'Tableau'}), (s_fa:Skill {name: 'FastAPI'}), 
+                      (s_da:Skill {name: 'Data Analysis'}), (s_pm:Skill {name: 'Project Management'}),
+                      (s_js:Skill {name: 'JavaScript'}), (s_react:Skill {name: 'React'})
+                
+                // Create Candidate -> Skill relationships
                 MERGE (e)-[:HAS_SKILL]->(s_py)
+                MERGE (e)-[:HAS_SKILL]->(s_da)
+                MERGE (e)-[:HAS_SKILL]->(s_pm) // Give Elena Project Management
                 MERGE (j)-[:HAS_SKILL]->(s_py)
                 MERGE (j)-[:HAS_SKILL]->(s_fa)
+                MERGE (j)-[:HAS_SKILL]->(s_sql)
+                MERGE (j)-[:HAS_SKILL]->(s_js) // Give John JS
+                MERGE (j)-[:HAS_SKILL]->(s_react) // Give John React
+
+                // Create Candidate -> Project relationship
                 MERGE (e)-[:WORKED_ON]->(p1)
+
+                // Create Project -> Skill relationships
                 MERGE (p1)-[:USES_SKILL]->(s_py)
                 MERGE (p1)-[:USES_SKILL]->(s_tab)
                 MERGE (p1)-[:USES_SKILL]->(s_sql)
+
+                // Create JobRole -> Skill relationships (ALL required skills)
                 MERGE (jr1)-[:REQUIRES_SKILL]->(s_py)
                 MERGE (jr1)-[:REQUIRES_SKILL]->(s_sql)
                 MERGE (jr1)-[:REQUIRES_SKILL]->(s_tab)
+                MERGE (jr1)-[:REQUIRES_SKILL]->(s_da)
+                MERGE (jr1)-[:REQUIRES_SKILL]->(s_pm)
                 MERGE (jr2)-[:REQUIRES_SKILL]->(s_py)
                 MERGE (jr2)-[:REQUIRES_SKILL]->(s_fa)
+                MERGE (jr2)-[:REQUIRES_SKILL]->(s_sql)
+                MERGE (jr2)-[:REQUIRES_SKILL]->(s_js)
+                MERGE (jr2)-[:REQUIRES_SKILL]->(s_react)
             """)
             print("Data seeding complete.")
 
