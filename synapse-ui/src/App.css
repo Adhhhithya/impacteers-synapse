@@ -172,3 +172,57 @@ body {
   height: 400px;
   width: 100%;
 }
+
+/* =================================================================== */
+/* === DASHBOARD UI STYLES (PHASE 12) === */
+/* =================================================================== */
+
+/* Use a dark theme for the main dashboard body */
+body.dashboard-theme {
+  background-color: #0D1117;
+  color: #c9d1d9;
+}
+
+.dashboard-container {
+  max-width: 100%;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 270px 1fr 1fr 400px; /* Define our columns */
+  grid-template-rows: auto auto 1fr; /* Define our rows */
+  gap: 1.5rem;
+  height: calc(100vh - 60px - 3rem); /* Full height minus navbar and padding */
+}
+
+/* Base styles for all dashboard widgets */
+.widget {
+  background-color: #161B22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.widget-title {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: #8b949e;
+  font-weight: 600;
+}
+
+.widget-content {
+  flex-grow: 1;
+}
+
+/* Place each widget in its correct grid cell */
+.overview-cards { grid-area: 1 / 1 / 2 / 2; }
+.candidate-viewer-small { grid-area: 2 / 1 / 4 / 2; }
+.talent-ecosystem { grid-area: 1 / 2 / 2 / 4; }
+.candidate-viewer-main { grid-area: 2 / 2 / 4 / 4; }
+.role-management { grid-area: 1 / 4 / 3 / 5; }
+.pipeline-tracker { grid-area: 3 / 4 / 4 / 5; }
