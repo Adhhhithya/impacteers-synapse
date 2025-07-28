@@ -1,6 +1,6 @@
 ### **Complete `README.md` for Impacteers Synapse**
 
-(You can copy everything from the line below)
+
 
 ---
 
