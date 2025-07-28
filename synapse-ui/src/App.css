@@ -1,19 +1,12 @@
 /* src/App.css - FINAL VERSION (LIGHT THEME) */
+/* (This is the same as the previous "board" version) */
 
 /* === GLOBAL STYLES === */
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7f9; color: #333; margin: 0;
-}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; background-color: #f4f7f9; color: #333; margin: 0; }
 .App { text-align: center; }
 
 /* === LAYOUT & NAVIGATION === */
-.navbar {
-  display: flex; justify-content: space-between; align-items: center;
-  background-color: #282c34; padding: 0.5rem 2rem; color: white;
-  height: 60px; box-sizing: border-box;
-}
+.navbar { display: flex; justify-content: space-between; align-items: center; background-color: #282c34; padding: 0.5rem 2rem; color: white; height: 60px; box-sizing: border-box; }
 .navbar-brand { font-size: 1.5rem; font-weight: bold; color: white; text-decoration: none; }
 .navbar-nav { list-style: none; display: flex; margin: 0; padding: 0; gap: 1.5rem; }
 .navbar-nav a { color: white; text-decoration: none; padding: 0.5rem; transition: color 0.2s; }
@@ -75,77 +68,36 @@ body {
 /* =================================================================== */
 /* === HIGH-FIDELITY GRAPH EXPLORER STYLES (BOARD THEME) === */
 /* =================================================================== */
-
-.graph-explorer-container {
-  /* Use the full page, but use padding to create the 'board' effect */
-  max-width: 100%;
-  height: calc(100vh - 60px);
-  padding: 2rem; /* Add space around our board */
-  margin: 0;
-  background-color: #e9ecef; /* A slightly darker background for contrast */
-  color: #333;
-  display: flex; 
-  flex-direction: column;
-  box-sizing: border-box; /* Important for padding calculations */
-}
-
-/* This is the new header style */
-.graph-header-light {
-  padding: 0 1rem 1.5rem 1rem; /* Padding inside the container */
-  text-align: left;
-  z-index: 10;
-  flex-shrink: 0; /* Prevent the header from shrinking */
-}
+.graph-explorer-container { max-width: 100%; height: calc(100vh - 60px); padding: 2rem; margin: 0; background-color: #e9ecef; color: #333; display: flex; flex-direction: column; box-sizing: border-box; }
+.graph-header-light { padding: 0 1rem 1.5rem 1rem; text-align: left; z-index: 10; flex-shrink: 0; }
 .graph-header-light h1 { margin: 0; }
 .graph-header-light p { margin: 0.5rem 0 0 0; color: #6c757d; max-width: 800px;}
-
-/* This is the new "Board" for our graph */
-.graph-board {
-  flex-grow: 1; /* Make the board take up all remaining vertical space */
-  position: relative; /* Crucial for positioning controls inside it */
-  background-color: #ffffff; /* The white board color */
-  border-radius: 12px; /* Nice rounded corners */
-  box-shadow: 0 8px 30px rgba(0,0,0,0.12); /* A soft, deep shadow */
-  border: 1px solid #dee2e6; /* A subtle border */
-  overflow: hidden; /* Hide anything that tries to escape the rounded corners */
-}
-
-/* Position controls inside the new board */
-.graph-controls {
-  position: absolute; 
-  bottom: 15px; 
-  left: 15px;
-  z-index: 10; 
-  display: flex; 
-  gap: 8px;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 8px; 
-  border-radius: 8px;
-  backdrop-filter: blur(4px);
-  border: 1px solid #ddd;
-}
-.graph-controls button {
-  background-color: transparent; border: none; color: #333;
-  width: 32px; height: 32px; font-size: 1rem;
-  cursor: pointer; display: flex; justify-content: center; align-items: center;
-  border-radius: 5px; transition: all 0.2s;
-}
+.graph-board { flex-grow: 1; position: relative; background-color: #ffffff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border: 1px solid #dee2e6; overflow: hidden; }
+.graph-controls { position: absolute; bottom: 15px; left: 15px; z-index: 10; display: flex; gap: 8px; background-color: rgba(255, 255, 255, 0.8); padding: 8px; border-radius: 8px; backdrop-filter: blur(4px); border: 1px solid #ddd; }
+.graph-controls button { background-color: transparent; border: none; color: #333; width: 32px; height: 32px; font-size: 1rem; cursor: pointer; display: flex; justify-content: center; align-items: center; border-radius: 5px; transition: all 0.2s; }
 .graph-controls button:hover { background-color: rgba(0, 0, 0, 0.1); color: #007bff; }
 
 /* === MODAL STYLES (Universal) === */
-.modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6); z-index: 20;
-  display: flex; justify-content: center; align-items: center;
-}
-.node-modal {
-  background: white; width: 90%; max-width: 450px; padding: 25px;
-  border-radius: 10px; outline: none;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.3); color: #333;
-}
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); z-index: 20; display: flex; justify-content: center; align-items: center; }
+.node-modal { background: white; width: 90%; max-width: 450px; padding: 25px; border-radius: 10px; outline: none; box-shadow: 0 5px 20px rgba(0,0,0,0.3); color: #333; }
 .node-modal h2 { margin-top: 0; margin-bottom: 20px; color: #333; font-size: 1.5rem; border-bottom: 1px solid #e0e0e0; padding-bottom: 15px; }
 .properties-table { width: 100%; border-collapse: collapse; }
 .properties-table td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
 .properties-table td:first-child { font-weight: bold; color: #555; padding-right: 20px; }
 .close-modal-button { background-color: #007bff; color: white; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; display: block; margin-top: 25px; margin-left: auto; }
 .close-modal-button:hover { background-color: #0056b3; }
+/* src/App.css - Add styles for the extracted skills list */
+
+.extracted-skills-list {
+  margin-top: 1rem;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  background-color: rgba(0,0,0,0.03);
+  border-radius: 5px;
+}
+
+.extracted-skills-list ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin-top: 0.5rem;
+}

@@ -14,10 +14,10 @@ function Navbar() {
         <li><NavLink to="/job-roles">Job Roles</NavLink></li>
         <li><NavLink to="/candidates">Candidates</NavLink></li>
         <li><NavLink to="/add-candidate">Add Candidate</NavLink></li>
-        <li><NavLink to="/graph-explorer">Explorer</NavLink></li> {/* <-- ADD NEW LINK */}
+        <li><NavLink to="/live-ingest">Live Ingest</NavLink></li> {/* <-- ADD NEW LINK */}
+        <li><NavLink to="/graph-explorer">Explorer</NavLink></li>
       </ul>
     </nav>
   );
 }
-
 export default Navbar;

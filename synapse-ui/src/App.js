@@ -7,8 +7,8 @@ import JobRolesPage from './pages/JobRolesPage';
 import CandidatesPage from './pages/CandidatesPage';
 import MatcherPage from './pages/MatcherPage';
 import AddCandidatePage from './pages/AddCandidatePage';
-import GraphExplorerPage from './pages/GraphExplorerPage'; // <-- IMPORT NEW PAGE
-import './App.css';
+import GraphExplorerPage from './pages/GraphExplorerPage';
+import LiveIngestPage from './pages/LiveIngestPage'; // <-- IMPORT NEW PAGE
 
 function App() {
   return (
@@ -21,11 +21,11 @@ function App() {
           <Route path="/job-roles" element={<JobRolesPage />} />
           <Route path="/candidates" element={<CandidatesPage />} />
           <Route path="/add-candidate" element={<AddCandidatePage />} />
-          <Route path="/graph-explorer" element={<GraphExplorerPage />} /> {/* <-- ADD NEW ROUTE */}
+          <Route path="/graph-explorer" element={<GraphExplorerPage />} />
+          <Route path="/live-ingest" element={<LiveIngestPage />} /> {/* <-- ADD NEW ROUTE */}
         </Routes>
       </div>
     </Router>
   );
 }
-
 export default App;
